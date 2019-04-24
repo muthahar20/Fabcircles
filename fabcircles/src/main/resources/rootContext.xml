@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:ehcache="http://ehcache-spring-annotations.googlecode.com/svn/schema/ehcache-spring"
+       xmlns="http://www.springframework.org/schema/beans"
+       
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans.xsd
+http://www.springframework.org/schema/context
+http://www.springframework.org/schema/context/spring-context.xsd
+http://www.springframework.org/schema/util
+http://www.springframework.org/schema/util/spring-util.xsd
+http://ehcache-spring-annotations.googlecode.com/svn/schema/ehcache-spring
+http://ehcache-spring-annotations.googlecode.com/svn/schema/ehcache-spring/ehcache-spring-1.2.xsd">
+
+    <context:component-scan base-package="com.fab"/>
+
+
+   
+ 
+
+
+<bean id="amqConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+    <!-- brokerURL, You may have different IP or port -->
+    <constructor-arg index="0" value="tcp://localhost:61616" />
+  </bean>
+ 
+  <!-- Pooled Spring connection factory -->
+  <bean id="connectionFactory"
+    class="org.springframework.jms.connection.CachingConnectionFactory">
+    <constructor-arg ref="amqConnectionFactory" />
+  </bean>
+ 
+  <!-- ======================================================= -->
+  <!-- JMS Send, define default destination and JmsTemplate    -->
+  <!-- ======================================================= -->
+  <!-- Default Destination Queue Definition -->
+  <bean id="defaultDestination" class="org.apache.activemq.command.ActiveMQQueue">
+    <!-- name of the queue -->
+    <constructor-arg index="0" value="simonqueue" />
+  </bean>
+ 
+  <!-- JmsTemplate Definition -->
+  <bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+    <property name="connectionFactory" ref="connectionFactory" />
+    <property name="defaultDestination" ref="defaultDestination" />
+  </bean>
+ 
+ <!-- Consumer configuration -->
+ 
+ <bean id="messageListenerAdapter"
+    class="org.springframework.jms.listener.adapter.MessageListenerAdapter">
+    <constructor-arg ref="jmsMessageListener" />
+  </bean>
+   
+  <bean id="messageListenerContainer"
+    class="org.springframework.jms.listener.DefaultMessageListenerContainer">
+    <property name="connectionFactory" ref="connectionFactory" />
+    <property name="destinationName" value="simonqueue" />
+    <property name="messageListener" ref="messageListenerAdapter" />
+  </bean>
+	   
+ 
+	
+
+</beans>
